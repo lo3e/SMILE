@@ -11,6 +11,7 @@ from src.utils.profile_manager import (
     format_profile_for_prompt,
     format_history_for_prompt,
 )
+from src.utils.memory_manager import update_episodes
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL_NAME = "llama3"
@@ -108,6 +109,18 @@ deducendo solo ciò che emerge chiaramente.
 
 Profili incompleti vanno completati solo se ci sono indizi solidi.
 
+In aggiunta, estrai eventuali EPISODI (memoria episodica vera):
+- un episodio è un'esperienza, attività, evento o contesto specifico menzionato dall'utente
+- deve essere qualcosa di concreto, singolo, situato in un contesto ("ieri", "ultimamente", "sto lavorando a...")
+
+Ogni episodio deve contenere:
+- title (breve titolo)
+- timeframe (quando è avvenuto o in che periodo è rilevante)
+- summary (1–2 frasi che descrivono l'episodio)
+- tags (lista di parole chiave)
+
+Se non ci sono episodi, restituisci episodes: [].
+
 === PROFILO ATTUALE ===
 {json.dumps(profile, ensure_ascii=False, indent=2)}
 
@@ -122,6 +135,7 @@ Ora restituisci in formato JSON:
 - interests: elenco sintetico di temi o hobby citati
 - personality: tratti comportamentali (es. curioso, empatico, analitico)
 - goals: obiettivi personali o professionali se emergono
+- episodes: lista di episodi rilevanti (può essere vuota)
         """
 
         response = ask_ollama(prompt, model=MODEL_NAME)
@@ -150,6 +164,14 @@ Ora restituisci in formato JSON:
 
         profile["interests"] = merge_list(profile.get("interests", []), data.get("interests", []))
         profile["goals"] = merge_list(profile.get("goals", []), data.get("goals", []))
+
+        # --- EPISODI ---
+        episodes = data.get("episodes", [])
+        if isinstance(episodes, list) and episodes:
+            try:
+                update_episodes(name, episodes)
+            except Exception as e:
+                print(f"[MEMORY] Errore aggiornando gli episodi: {e}")
 
         # Salva anche le ultime conversazioni recenti
         profile["recent_conversations"] = conversation[-5:]

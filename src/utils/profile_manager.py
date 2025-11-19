@@ -83,6 +83,7 @@ def load_profile(name: str) -> dict:
             "interests": [],
             "personality": None,
             "goals": [],
+            "episodes": [],
             "notes_summary": "",
             "recent_conversations": [],
             "last_update": None
@@ -90,7 +91,17 @@ def load_profile(name: str) -> dict:
 
     try:
         with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            profile = json.load(f)
+
+        # --- Normalizzazione campi mancanti ---
+        if "episodes" not in profile:
+            profile["episodes"] = []
+        if "notes_summary" not in profile:
+            profile["notes_summary"] = ""
+        if "recent_conversations" not in profile:
+            profile["recent_conversations"] = []
+
+        return profile
     except Exception:
         # se c'è un problema di parsing, fallback a base
         return {
@@ -102,6 +113,7 @@ def load_profile(name: str) -> dict:
             "interests": [],
             "personality": None,
             "goals": [],
+            "episodes": [],
             "notes_summary": "",
             "recent_conversations": [],
             "last_update": None

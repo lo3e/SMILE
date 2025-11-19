@@ -113,3 +113,18 @@ def update_profile_summary(name: str, new_summary: str):
 
     profile["last_update"] = datetime.datetime.now().isoformat()
     save_profile(name, profile)
+
+def update_episodes(name: str, new_episodes: list):
+    """Aggiunge nuovi episodi al profilo, evitando duplicati."""
+    profile = load_profile(name)
+    eps = profile.get("episodes", [])
+
+    for ep in new_episodes:
+        if ep not in eps:
+            eps.append(ep)
+
+    profile["episodes"] = eps
+    profile["last_update"] = datetime.datetime.now().isoformat()
+    save_profile(name, profile)
+
+    print(f"[MEMORY] Episodi aggiornati per {name}: {len(new_episodes)} nuovi episodi aggiunti.")
