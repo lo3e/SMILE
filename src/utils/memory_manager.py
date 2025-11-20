@@ -63,6 +63,7 @@ def load_profile(name: str) -> dict:
             "interests": [],
             "personality": None,
             "goals": [],
+            "episodes": [],
             "notes_summary": "",
             "recent_conversations": []
         }
@@ -77,6 +78,8 @@ def load_profile(name: str) -> dict:
         profile["notes_summary"] = ""
     if "recent_conversations" not in profile:
         profile["recent_conversations"] = []
+    if "episodes" not in profile:
+        profile["episodes"] = []
 
     return profile
 

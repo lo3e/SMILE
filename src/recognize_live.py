@@ -108,7 +108,7 @@ def handle_interaction(name: str, embedding=None):
 
         else:
             # Utente già noto
-            speak_async(speak, f"Ciao {name}!").result()
+            speak_async(speak, f"Ciao {name}! Sono qui. Dimmi pure.").result()
             time.sleep(1.2)
 
         # === 2. Stato conversazionale ===
@@ -177,7 +177,7 @@ def handle_interaction(name: str, embedding=None):
             lower_text = user_text.lower()
 
             # === 3a. Gestione stato GREETING ===
-            if state == "GREETING":
+            '''if state == "GREETING":
                 # appena l'utente dice qualcosa di più del semplice saluto, passiamo a FREE_TALK
                 if (
                     len(lower_text.split()) > 1
@@ -207,7 +207,31 @@ def handle_interaction(name: str, embedding=None):
                     log_full_conversation(name, user_text, reply)
                     print("🟢 Pronto ad ascoltare!")
                     time.sleep(1.0)
-                    continue
+                    continue'''
+            if state == "GREETING":
+                reply_future = ask_ollama_async(
+                    lambda prompt: ask_ollama_with_context(
+                        name,
+                        prompt,
+                        is_first_turn=first_turn,
+                        state=state
+                    ),
+                    user_text
+                )
+
+                reply_raw = reply_future.result(timeout=30)
+                reply = clean_llm_reply(reply_raw, state=state, is_first_turn=first_turn)
+                first_turn = False
+
+                speak_async(speak, reply).result()
+                log_full_conversation(name, user_text, reply)
+
+                # Dopo un solo turno, sempre e comunque → FREE_TALK
+                state = "FREE_TALK"
+
+                print("🟢 Pronto ad ascoltare!")
+                time.sleep(1.0)
+                continue
 
             # === 3b. Fine conversazione? (sia FREE_TALK che GREETING)
             goodbye_phrases = [
